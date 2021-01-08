@@ -8,8 +8,14 @@ import numpy as np
 import pandas as pd
 import time
 import streamlit as st
-st.title('Capstone Project')
+from PIL import Image
 
+st.title('Capstone BikeShare Project')
+img_name = 'bikeshare.jpg'
+img_dir = 'C:/Users/The Presence/Documents/Personal Document/Personal Development/Data Science and Analytics/Udacity (Python Course)/Labs Tasks-20200924T221854Z-001/Lab Results/Capstone Project/bikeshare-2/' + img_name
+img = Image.open(img_dir) 
+st.image(img, width=300)
+   
 def filter_data(city, data_filter, Month, Day):
     """
     Loads data for the specified city and filters by month and/or day if applicable.
@@ -26,6 +32,7 @@ def filter_data(city, data_filter, Month, Day):
     """
     directory = 'C:/Users/The Presence/Documents/Personal Document/Personal Development/Data Science and Analytics/Udacity (Python Course)/Labs Tasks-20200924T221854Z-001/Lab Results/Capstone Project/bikeshare-2/' + city 
     df = pd.read_csv(directory)
+    df_1 = df.copy() 
     df['Start Time'] = pd.to_datetime(df['Start Time'])
     df['Months'] = df['Start Time'].dt.month_name(locale='English')
     df['Days'] = df['Start Time'].dt.day_name(locale='English')
@@ -45,7 +52,7 @@ def filter_data(city, data_filter, Month, Day):
         df_month = df[df.Months == spef_mon]
         df_month_day = df_month[df_month.Days == spef_day]
         df = df_month_day
-    return(df)
+    return(df, df_1)
 
 def stats(df):
     """
@@ -105,31 +112,37 @@ def get_month_day (data_filter):
     return(mnth, dy)
 
 #Interactive Section: Takes user input, to decide whether to compute the statistics or not.
-st.sidebar.write('Hello! Would you like to see Statistical Breakdown of Bike Share Data?')
-cty = st.sidebar.selectbox('Select Filename', ('chicago.csv', 'new_york_city.csv', 'washington.csv'))
+st.sidebar.subheader('Hello! Would you like to see Statistical Breakdown of Bike Share Data?')
+cty = st.sidebar.selectbox('Select Filename', ('chicago.csv', 'new_york_city.csv', 'washington.csv'), key=1)
 data_filter = st.sidebar.selectbox('Select Data Filter', ('Month', 'Day', 'Both', 'None'))
 mnth, dy = get_month_day(data_filter)
 
-st.write('\nCity: ({}), Filter: ({}), Month: ({}), Day: ({})'.format(cty, data_filter, mnth, dy))
+st.text('\nCity: ({}), Filter: ({}), Month: ({}), Day: ({})'.format(cty, data_filter, mnth, dy))
 start_time = time.time()
-data_frame = filter_data(cty, data_filter, mnth, dy)
-st.write("\nIt took {} second(s) to load and filter the raw data of {} size." .format((time.time() - start_time), data_frame.shape))
+data_frame, df_1 = filter_data(cty, data_filter, mnth, dy)
+st.info('Information!')
+st.text("\nIt took {} second(s) to load and filter the raw data of {} size." .format((time.time() - start_time), data_frame.shape))
 start_time = time.time()
 section_1, section_2, section_3, section_4 = stats(data_frame)
-st.write("\nIt took %s second(s) to calculate the needed Statistical Data." % (time.time() - start_time))
+st.text("\nIt took %s second(s) to calculate the needed Statistical Data." % (time.time() - start_time))
+
+st.write('')
+st.write('')
+st.subheader('Statistical Data')
 st.write('\nSecion 1:\n', section_1)
 st.write('\nSecion 2:\n', section_2)
 st.write('\nSecion 3:\n', section_3)
 st.write('\nSecion 4:\n', section_4)
+st.success('Analysis was successful!')
+st.write('')
+st.write('')
        
 #Interactive Section: Takes user input, to decide whether to display raw data or not.
-city = st.sidebar.selectbox('View Raw Data\nSelect Filename', ('chicago.csv', 'new_york_city.csv', 'washington.csv'))
-end_row = st.sidebar.slider('Select number of rows to display', 5, 100) 
-filename = cty + '.csv'
-directory = 'C:/Users/The Presence/Documents/Personal Document/Personal Development/Data Science and Analytics/Udacity (Python Course)/Labs Tasks-20200924T221854Z-001/Lab Results/Capstone Project/bikeshare-2/' + city 
-df = pd.read_csv(directory)
-st.write('\n', df[:end_row])
-        
+st.sidebar.subheader('View Raw Data')        
+end_row = st.sidebar.slider('Select number of rows to display', 5, 1000)
+if st.sidebar.button('Display',):
+    st.subheader('\nRaw Data')
+    st.write(df_1[:end_row])    
 
 
 
